@@ -5,7 +5,11 @@ Serialize [Mapbox vector tiles](https://github.com/mapbox/vector-tile-spec) to b
 ## Usage
 
 As far as I know, the two places you might get a JS representation of a vector
-tile are [geojson-vt](https://github.com/mapbox/geojson-vt) and [vector-tile-js](https://github.com/mapbox/vector-tile-js).  As these both use slightly different internal representations (and I'm not sure which ought to be considered the 'canonical' one), this this module has a method for deserializing each:
+tile are [geojson-vt](https://github.com/mapbox/geojson-vt) and
+[vector-tile-js](https://github.com/mapbox/vector-tile-js).  As these both use
+slightly different internal representations (and I'm not sure which ought to be
+considered the 'canonical' one), this this module has a method for
+serializing each:
 
 ```javascript
 var vtpbf = require('vt-pbf')
