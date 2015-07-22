@@ -13,6 +13,7 @@ serializing each:
 
 ```javascript
 var vtpbf = require('vt-pbf')
+var geojsonVt = require('geojson-vt')
 
 var orig = JSON.parse(fs.readFileSync(__dirname + '/fixtures/rectangle.geojson'))
 var tileindex = geojsonVt(orig)
@@ -24,6 +25,7 @@ fs.writeFileSync('my-tile.pbf', buff)
 
 ```javascript
 var vtpbf = require('vt-pbf')
+var VectorTile = require('vector-tile').VectorTile
 
 var data = fs.readFileSync(__dirname + '/fixtures/rectangle-1.0.0.pbf')
 var tile = new VectorTile(new Pbf(data))
