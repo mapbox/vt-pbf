@@ -48,6 +48,14 @@ function fromVectorTileJs (tile) {
  */
 function fromGeojsonVt (layer, layerName) {
   layer.name = layerName
+  layer.features.forEach(function (feature) {
+    if (feature.type === 1) {
+      // Nest point geometry in an extra array, beacuse
+      // encodeGeometry expects 'rings'
+      // This will probably bite me later
+      feature.geometry = [feature.geometry]
+    }
+  })
   prepareLayer(layer)
   var out = new Pbf()
   vtpb.tile.write({ layers: [layer] }, out)
@@ -103,7 +111,7 @@ function zigzag (num) {
 }
 
 /**
- * Encode a feature's geometry into an array ready to be serialized
+ * Encode a polygon's geometry into an array ready to be serialized
  * to mapbox vector tile specified geometry data.
  *
  * @param {Array} Rings, each being an array of [x, y] tile-space coordinates

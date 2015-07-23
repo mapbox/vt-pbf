@@ -17,22 +17,34 @@ test('geojson-vt tiles', function (t) {
 
   // make sure it parses correctly in vector-tile-js
   var tile3 = new VectorTile(new Pbf(buff))
-  var out = tile3.layers['geojsonLayer'].feature(0).toGeoJSON(0, 0, 1)
+  var layer = tile3.layers['geojsonLayer']
+  var features = []
+  for (var i = 0; i < layer.length; i++) {
+    var feat = layer.feature(i).toGeoJSON(0, 0, 1)
+    features.push(feat)
+  }
 
-  t.ok(eq.compare(orig, out), 'serializing and deserializing yields equivalent geojson')
-  t.end()
+  t.plan(orig.features.length)
+  orig.features.forEach(function (expected) {
+    var actual = features.shift()
+    t.ok(eq.compare(actual, expected))
+  })
 })
 
 test('vector-tile-js tiles', function (t) {
   var data = fs.readFileSync(__dirname + '/fixtures/rectangle-1.0.0.pbf')
   var tile = new VectorTile(new Pbf(data))
-  var orig = tile.layers['geojsonLayer'].feature(0).toGeoJSON(0, 0, 1)
 
   var buff = serialize.fromVectorTileJs(tile)
-
   var tile3 = new VectorTile(new Pbf(buff))
-  var out = tile3.layers['geojsonLayer'].feature(0).toGeoJSON(0, 0, 1)
 
-  t.ok(eq.compare(orig, out), 'serializing and deserializing yields equivalent geojson')
-  t.end()
+  var orig = tile.layers['geojsonLayer']
+  t.plan(orig.length)
+
+  var layer = tile3.layers['geojsonLayer']
+  for (var i = 0; i < layer.length; i++) {
+    var actual = orig.feature(i).toGeoJSON(0, 0, 1)
+    var expected = layer.feature(i).toGeoJSON(0, 0, 1)
+    t.ok(eq.compare(actual, expected))
+  }
 })
