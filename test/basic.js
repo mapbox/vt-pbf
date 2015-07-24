@@ -13,7 +13,9 @@ test('geojson-vt tiles', function (t) {
   var tileindex = geojsonVt(orig)
   var tile = tileindex.getTile(1, 0, 0)
 
-  var buff = serialize.fromGeojsonVt(tile, 'geojsonLayer')
+  var buff = serialize.fromGeojsonVt({
+    'geojsonLayer': tile
+  })
 
   // make sure it parses correctly in vector-tile-js
   var tile3 = new VectorTile(new Pbf(buff))

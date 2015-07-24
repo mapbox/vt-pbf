@@ -42,23 +42,27 @@ function fromVectorTileJs (tile) {
 /**
  * Serialized a geojson-vt-created tile to pbf.
  *
- * @param layer
- * @param {string} [layerName]
+ * @param {Object} layers - An object mapping layer names to geojson-vt-created vector tile objects
  * @return {Buffer} uncompressed, pbf-serialized tile data
  */
-function fromGeojsonVt (layer, layerName) {
-  layer.name = layerName
-  layer.features.forEach(function (feature) {
-    if (feature.type === 1) {
-      // Nest point geometry in an extra array, beacuse
-      // encodeGeometry expects 'rings'
-      // This will probably bite me later
-      feature.geometry = [feature.geometry]
-    }
-  })
-  prepareLayer(layer)
+function fromGeojsonVt (layers) {
+  var preparedLayers = []
+  for (var layerName in layers) {
+    var layer = layers[layerName]
+    layer.name = layerName
+    preparedLayers.push(layer)
+    layer.features.forEach(function (feature) {
+      if (feature.type === 1) {
+        // Nest point geometry in an extra array, beacuse
+        // encodeGeometry expects 'rings'
+        // This will probably bite me later
+        feature.geometry = [feature.geometry]
+      }
+    })
+    prepareLayer(layer)
+  }
   var out = new Pbf()
-  vtpb.tile.write({ layers: [layer] }, out)
+  vtpb.tile.write({ layers: preparedLayers }, out)
   return out.finish()
 }
 
