@@ -11,6 +11,8 @@ slightly different internal representations (and I'm not sure which ought to be
 considered the 'canonical' one), this this module has a method for
 serializing each:
 
+## From geojson-vt
+
 ```javascript
 var vtpbf = require('vt-pbf')
 var geojsonVt = require('geojson-vt')
@@ -19,9 +21,13 @@ var orig = JSON.parse(fs.readFileSync(__dirname + '/fixtures/rectangle.geojson')
 var tileindex = geojsonVt(orig)
 var tile = tileindex.getTile(1, 0, 0)
 
-var buff = vtpbf.fromGeojsonVt(tile, 'geojsonLayer')
+// pass in an object mapping layername -> tile object
+var buff = vtpbf.fromGeojsonVt({ 'geojsonLayer': tile })
 fs.writeFileSync('my-tile.pbf', buff)
 ```
+
+
+## From vector-tile-js
 
 ```javascript
 var vtpbf = require('vt-pbf')
