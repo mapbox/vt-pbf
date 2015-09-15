@@ -37,7 +37,7 @@ test('vector-tile-js tiles', function (t) {
   var data = fs.readFileSync(__dirname + '/fixtures/rectangle-1.0.0.pbf')
   var tile = new VectorTile(new Pbf(data))
 
-  var buff = serialize.fromVectorTileJs(tile)
+  var buff = serialize(tile)
   var tile3 = new VectorTile(new Pbf(buff))
 
   var orig = tile.layers['geojsonLayer']

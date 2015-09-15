@@ -1,10 +1,11 @@
 var Pbf = require('pbf')
 var vtpb = require('./vector-tile-pb')
+var GeoJSONWrapper = require('./lib/geojson_wrapper')
 
-module.exports = {
-  fromGeojsonVt: fromGeojsonVt,
-  fromVectorTileJs: fromVectorTileJs
-}
+module.exports = fromVectorTileJs
+module.exports.fromVectorTileJs = fromVectorTileJs
+module.exports.fromGeojsonVt = fromGeojsonVt
+module.exports.GeoJSONWrapper = GeoJSONWrapper
 
 /**
  * Serialize a vector-tile-js-created tile to pbf
@@ -15,23 +16,7 @@ module.exports = {
 function fromVectorTileJs (tile) {
   var layers = []
   for (var l in tile.layers) {
-    var layer = tile.layers[l]
-    layer.features = []
-    // translate each feature object into the same from we get from
-    // geosjon-vt
-    for (var i = 0; i < layer.length; i++) {
-      var feature = layer.feature(i)
-      feature.tags = feature.properties
-      feature.geometry = feature.loadGeometry()
-        .map(function (ring) {
-          return ring.map(function (point) {
-            return [point.x, point.y]
-          })
-        })
-      layer.features.push(feature)
-    }
-    prepareLayer(layer)
-    layers.push(layer)
+    layers.push(prepareLayer(tile.layers[l]))
   }
 
   var out = new Pbf()
@@ -46,56 +31,48 @@ function fromVectorTileJs (tile) {
  * @return {Buffer} uncompressed, pbf-serialized tile data
  */
 function fromGeojsonVt (layers) {
-  var preparedLayers = []
-  for (var layerName in layers) {
-    var layer = layers[layerName]
-    layer.name = layerName
-    preparedLayers.push(layer)
-    layer.features.forEach(function (feature) {
-      if (feature.type === 1) {
-        // Nest point geometry in an extra array, beacuse
-        // encodeGeometry expects 'rings'
-        // This will probably bite me later
-        feature.geometry = [feature.geometry]
-      }
-    })
-    prepareLayer(layer)
+  var l = {}
+  for (var k in layers) {
+    l[k] = new GeoJSONWrapper(layers[k].features)
+    l[k].name = k
   }
-  var out = new Pbf()
-  vtpb.tile.write({ layers: preparedLayers }, out)
-  return out.finish()
+  return fromVectorTileJs({layers: l})
 }
 
 /**
  * Prepare the given layer to be serialized by the auto-generated pbf
- * serializer by encoding the feature geometry and tags.
+ * serializer by encoding the feature geometry and properties.
  */
 function prepareLayer (layer) {
-  layer.name = layer.name || ''
-  layer.version = layer.version || 1
-  layer.extent = layer.extent || 4096
-  layer.keys = []
-  layer.values = []
+  var preparedLayer = {
+    name: layer.name || '',
+    version: layer.version || 1,
+    extent: layer.extent || 4096,
+    keys: [],
+    values: [],
+    features: []
+  }
 
   var keycache = {}
   var valuecache = {}
 
-  layer.features.forEach(function (feature) {
-    feature.geometry = encodeGeometry(feature.geometry)
+  for (var i = 0; i < layer.length; i++) {
+    var feature = layer.feature(i)
+    feature.geometry = encodeGeometry(feature.loadGeometry())
 
     var tags = []
-    for (var key in feature.tags) {
+    for (var key in feature.properties) {
       var keyIndex = keycache[key]
       if (typeof keyIndex === 'undefined') {
-        layer.keys.push(key)
-        keyIndex = layer.keys.length - 1
+        preparedLayer.keys.push(key)
+        keyIndex = preparedLayer.keys.length - 1
         keycache[key] = keyIndex
       }
-      var value = wrapValue(feature.tags[key])
+      var value = wrapValue(feature.properties[key])
       var valueIndex = valuecache[value.key]
       if (typeof valueIndex === 'undefined') {
-        layer.values.push(value)
-        valueIndex = layer.values.length - 1
+        preparedLayer.values.push(value)
+        valueIndex = preparedLayer.values.length - 1
         valuecache[value.key] = valueIndex
       }
       tags.push(keyIndex)
@@ -103,7 +80,10 @@ function prepareLayer (layer) {
     }
 
     feature.tags = tags
-  })
+    preparedLayer.features.push(feature)
+  }
+
+  return preparedLayer
 }
 
 function command (cmd, length) {
@@ -131,8 +111,8 @@ function encodeGeometry (geometry) {
       if (i === 1) {
         encoded.push(command(2, ring.length - 1)) // lineto
       }
-      var dx = ring[i][0] - x
-      var dy = ring[i][1] - y
+      var dx = ring[i].x - x
+      var dy = ring[i].y - y
       encoded.push(zigzag(dx), zigzag(dy))
       x += dx
       y += dy
