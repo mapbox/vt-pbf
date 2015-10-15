@@ -105,7 +105,9 @@ function encodeGeometry (geometry) {
   var encoded = []
   var x = 0
   var y = 0
-  geometry.forEach(function (ring) {
+  var rings = geometry.length
+  for (var r = 0; r < rings; r++) {
+    var ring = geometry[r]
     encoded.push(command(1, 1)) // moveto
     for (var i = 0; i < ring.length; i++) {
       if (i === 1) {
@@ -117,7 +119,7 @@ function encodeGeometry (geometry) {
       x += dx
       y += dy
     }
-  })
+  }
 
   return encoded
 }
