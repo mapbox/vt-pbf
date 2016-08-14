@@ -50,3 +50,22 @@ test('vector-tile-js tiles', function (t) {
     t.ok(eq.compare(actual, expected))
   }
 })
+
+test('JSON.stringify non-primitive properties', function (t) {
+  var orig = JSON.parse(fs.readFileSync(__dirname + '/fixtures/rectangle.geojson'))
+  var obj = orig.features[0].properties.obj = { hello: 'world' }
+  var arr = orig.features[0].properties.arr = [1, 2, 3]
+
+  var tileindex = geojsonVt(orig)
+  var tile = tileindex.getTile(1, 0, 0)
+  var buff = serialize.fromGeojsonVt({ 'geojsonLayer': tile })
+
+  var vt = new VectorTile(new Pbf(buff))
+  var layer = vt.layers['geojsonLayer']
+  var feat = layer.feature(0)
+
+  t.same(feat.properties.obj, JSON.stringify(obj))
+  t.same(feat.properties.arr, JSON.stringify(arr))
+  t.end()
+})
+
