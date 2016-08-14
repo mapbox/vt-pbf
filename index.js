@@ -145,7 +145,7 @@ function wrapValue (value) {
       result = { uint_value: value }
     }
   } else {
-    result = { string_value: '' + value }
+    result = { string_value: JSON.stringify(value) }
   }
 
   result.key = type + ':' + value
