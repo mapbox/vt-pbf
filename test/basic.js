@@ -69,3 +69,22 @@ test('JSON.stringify non-primitive properties', function (t) {
   t.end()
 })
 
+test('Pass through integer ids', function (t) {
+  var orig = JSON.parse(fs.readFileSync(__dirname + '/fixtures/rectangle.geojson'))
+  orig.features[1].id = 'Hello'
+  var tileindex = geojsonVt(orig)
+  var tile = tileindex.getTile(1, 0, 0)
+  var buff = serialize.fromGeojsonVt({ 'geojsonLayer': tile })
+
+  var vt = new VectorTile(new Pbf(buff))
+  var layer = vt.layers['geojsonLayer']
+  var feat0 = layer.feature(0)
+  var feat1 = layer.feature(1)
+  var feat2 = layer.feature(2)
+
+  t.same(feat0.id, 123)
+  t.notOk(feat1.id, 'Non-integer values should not be saved')
+  t.notOk(feat2.id)
+
+  t.end()
+})

@@ -3,6 +3,7 @@
   "features": [
     {
       "type": "Feature",
+      "id": 123,
       "properties": {
         "mykey": "myvalue",
         "myotherkey": 10
