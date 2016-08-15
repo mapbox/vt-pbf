@@ -1,6 +1,6 @@
 {
   "name": "vt-pbf",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Serialize mapbox vector tiles to binary protobufs in javascript.",
   "main": "index.js",
   "scripts": {
