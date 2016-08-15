@@ -1,4 +1,4 @@
-# vt-pbf
+# vt-pbf [![CircleCI](https://circleci.com/gh/mapbox/vt-pbf.svg?style=svg)](https://circleci.com/gh/mapbox/vt-pbf)
 
 Serialize [Mapbox vector tiles](https://github.com/mapbox/vector-tile-spec) to binary protobufs in javascript.
 
