@@ -137,8 +137,8 @@ function wrapValue (value) {
   } else if (type === 'boolean') {
     result = { bool_value: value }
   } else if (type === 'number') {
-    if (value !== (value | 0)) {
-      result = { float_value: value }
+    if (value % 1 !== 0) {
+      result = { double_value: value }
     } else if (value < 0) {
       result = { sint_value: value }
     } else {

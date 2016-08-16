@@ -67,6 +67,8 @@ test('JSON.stringify non-primitive properties', function (t) {
   t.same(first.d, '[1,2,3]')
   t.same(second.c, '{"goodbye":"mind"}')
   t.same(second.d, '{"hello":"world"}')
+  t.equal(first.e, 39953616224)
+  t.equal(first.f, 331.75415)
   t.end()
 })
 
