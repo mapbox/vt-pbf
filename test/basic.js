@@ -2,7 +2,7 @@ var fs = require('fs')
 var test = require('tape')
 var Pbf = require('pbf')
 var geojsonVt = require('geojson-vt')
-var VectorTile = require('vector-tile').VectorTile
+var VectorTile = require('@mapbox/vector-tile').VectorTile
 var GeoJsonEquality = require('geojson-equality')
 var eq = new GeoJsonEquality({ precision: 1 })
 
