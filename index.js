@@ -127,9 +127,6 @@ function encodeGeometry (geometry, type) {
       x += dx
       y += dy
     }
-    // if (type === 3) {
-    //   encoded.push(command(7, 1)) // closePath
-    // }
   }
 
   return encoded
