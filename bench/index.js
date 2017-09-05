@@ -16,6 +16,9 @@ var propertiesTile = geojsonVt(properties).getTile(0, 0, 0)
 var simple = JSON.parse(fs.readFileSync(path.join(__dirname, 'rectangle.geojson')))
 var simpleTile = geojsonVt(simple).getTile(0, 0, 0)
 
+var points = JSON.parse(fs.readFileSync(path.join(__dirname, 'points.geojson')))
+var pointsTile = geojsonVt(points).getTile(14, 3888, 6255)
+
 var suite = new Benchmark.Suite('vt-pbf')
 suite
 .add('raw', function () {
@@ -23,6 +26,9 @@ suite
 })
 .add('simple', function () {
   serialize.fromGeojsonVt({ 'geojsonLayer': simpleTile })
+})
+.add('points', function () {
+  serialize.fromGeojsonVt({ 'geojsonLayer': pointsTile })
 })
 .add('lots of properties', function () {
   serialize.fromGeojsonVt({ 'geojsonLayer': propertiesTile })
