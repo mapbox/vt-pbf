@@ -58,7 +58,7 @@ function prepareLayer (layer) {
 
   for (var i = 0; i < layer.length; i++) {
     var feature = layer.feature(i)
-    feature.geometry = encodeGeometry(feature.loadGeometry())
+    feature.geometry = encodeGeometry(feature.loadGeometry(), feature.type)
 
     var tags = []
     for (var key in feature.properties) {
@@ -101,16 +101,20 @@ function zigzag (num) {
  * @param {Array} Rings, each being an array of [x, y] tile-space coordinates
  * @return {Array} encoded geometry
  */
-function encodeGeometry (geometry) {
+function encodeGeometry (geometry, type) {
   var encoded = []
   var x = 0
   var y = 0
   var rings = geometry.length
   for (var r = 0; r < rings; r++) {
     var ring = geometry[r]
-    encoded.push(command(1, 1)) // moveto
+    var count = 1
+    if (type === 1) {
+      count = ring.length
+    }
+    encoded.push(command(1, count)) // moveto
     for (var i = 0; i < ring.length; i++) {
-      if (i === 1) {
+      if (i === 1 && type !== 1) {
         encoded.push(command(2, ring.length - 1)) // lineto
       }
       var dx = ring[i].x - x
