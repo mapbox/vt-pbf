@@ -33,6 +33,30 @@ test('geojson-vt tiles', function (t) {
   })
 })
 
+test('geojson-vt multipoint', function (t) {
+  var orig = JSON.parse(fs.readFileSync(__dirname + '/fixtures/multi-points.json'))
+  var tileindex = geojsonVt(orig)
+  var tile = tileindex.getTile(1, 0, 0)
+
+  var buff = serialize.fromGeojsonVt({
+    'multipoint': tile
+  })
+
+  var tile3 = new VectorTile(new Pbf(buff))
+  var layer = tile3.layers['multipoint']
+  var features = []
+  for (var i = 0; i < layer.length; i++) {
+    var feat = layer.feature(i).toGeoJSON(0, 0, 1)
+    features.push(feat)
+  }
+
+  t.plan(orig.features.length)
+  orig.features.forEach(function (expected) {
+    var actual = features.shift()
+    t.ok(eq.compare(actual, expected))
+  })
+})
+
 test('vector-tile-js tiles', function (t) {
   var data = fs.readFileSync(__dirname + '/fixtures/rectangle-1.0.0.pbf')
   var tile = new VectorTile(new Pbf(data))

@@ -1,5 +1,4 @@
 var Pbf = require('pbf')
-var vtpb = require('./vector-tile-pb')
 var GeoJSONWrapper = require('./lib/geojson_wrapper')
 
 module.exports = fromVectorTileJs
@@ -14,13 +13,8 @@ module.exports.GeoJSONWrapper = GeoJSONWrapper
  * @return {Buffer} uncompressed, pbf-serialized tile data
  */
 function fromVectorTileJs (tile) {
-  var layers = []
-  for (var l in tile.layers) {
-    layers.push(prepareLayer(tile.layers[l]))
-  }
-
   var out = new Pbf()
-  vtpb.tile.write({ layers: layers }, out)
+  writeTile(tile, out)
   return out.finish()
 }
 
@@ -45,51 +39,83 @@ function fromGeojsonVt (layers, options) {
   return fromVectorTileJs({layers: l})
 }
 
-/**
- * Prepare the given layer to be serialized by the auto-generated pbf
- * serializer by encoding the feature geometry and properties.
- */
-function prepareLayer (layer) {
-  var preparedLayer = {
-    name: layer.name || '',
-    version: layer.version || 1,
-    extent: layer.extent || 4096,
+function writeTile (tile, pbf) {
+  for (var key in tile.layers) {
+    pbf.writeMessage(3, writeLayer, tile.layers[key])
+  }
+}
+
+function writeLayer (layer, pbf) {
+  pbf.writeVarintField(15, layer.version || 1)
+  pbf.writeStringField(1, layer.name || '')
+  pbf.writeVarintField(5, layer.extent || 4096)
+
+  var i
+  var context = {
     keys: [],
     values: [],
-    features: []
+    keycache: {},
+    valuecache: {}
   }
 
-  var keycache = {}
-  var valuecache = {}
+  for (i = 0; i < layer.length; i++) {
+    context.feature = layer.feature(i)
+    pbf.writeMessage(2, writeFeature, context)
+  }
 
-  for (var i = 0; i < layer.length; i++) {
-    var feature = layer.feature(i)
-    feature.geometry = encodeGeometry(feature.loadGeometry())
+  var keys = context.keys
+  for (i = 0; i < keys.length; i++) {
+    pbf.writeStringField(3, keys[i])
+  }
 
-    var tags = []
-    for (var key in feature.properties) {
-      var keyIndex = keycache[key]
-      if (typeof keyIndex === 'undefined') {
-        preparedLayer.keys.push(key)
-        keyIndex = preparedLayer.keys.length - 1
-        keycache[key] = keyIndex
-      }
-      var value = wrapValue(feature.properties[key])
-      var valueIndex = valuecache[value.key]
-      if (typeof valueIndex === 'undefined') {
-        preparedLayer.values.push(value)
-        valueIndex = preparedLayer.values.length - 1
-        valuecache[value.key] = valueIndex
-      }
-      tags.push(keyIndex)
-      tags.push(valueIndex)
+  var values = context.values
+  for (i = 0; i < values.length; i++) {
+    pbf.writeMessage(4, writeValue, values[i])
+  }
+}
+
+function writeFeature (context, pbf) {
+  var feature = context.feature
+
+  if (feature.id !== undefined) {
+    pbf.writeVarintField(1, feature.id)
+  }
+
+  pbf.writeMessage(2, writeProperties, context)
+  pbf.writeVarintField(3, feature.type)
+  pbf.writeMessage(4, writeGeometry, feature)
+}
+
+function writeProperties (context, pbf) {
+  var feature = context.feature
+  var keys = context.keys
+  var values = context.values
+  var keycache = context.keycache
+  var valuecache = context.valuecache
+
+  for (var key in feature.properties) {
+    var keyIndex = keycache[key]
+    if (typeof keyIndex === 'undefined') {
+      keys.push(key)
+      keyIndex = keys.length - 1
+      keycache[key] = keyIndex
     }
+    pbf.writeVarint(keyIndex)
 
-    feature.tags = tags
-    preparedLayer.features.push(feature)
+    var value = feature.properties[key]
+    var type = typeof value
+    if (type !== 'string' && type !== 'boolean' && type !== 'number') {
+      value = JSON.stringify(value)
+    }
+    var valueKey = type + ':' + value
+    var valueIndex = valuecache[valueKey]
+    if (typeof valueIndex === 'undefined') {
+      values.push(value)
+      valueIndex = values.length - 1
+      valuecache[valueKey] = valueIndex
+    }
+    pbf.writeVarint(valueIndex)
   }
-
-  return preparedLayer
 }
 
 function command (cmd, length) {
@@ -100,61 +126,46 @@ function zigzag (num) {
   return (num << 1) ^ (num >> 31)
 }
 
-/**
- * Encode a polygon's geometry into an array ready to be serialized
- * to mapbox vector tile specified geometry data.
- *
- * @param {Array} Rings, each being an array of [x, y] tile-space coordinates
- * @return {Array} encoded geometry
- */
-function encodeGeometry (geometry) {
-  var encoded = []
+function writeGeometry (feature, pbf) {
+  var geometry = feature.loadGeometry()
+  var type = feature.type
   var x = 0
   var y = 0
   var rings = geometry.length
   for (var r = 0; r < rings; r++) {
     var ring = geometry[r]
-    encoded.push(command(1, 1)) // moveto
+    var count = 1
+    if (type === 1) {
+      count = ring.length
+    }
+    pbf.writeVarint(command(1, count)) // moveto
     for (var i = 0; i < ring.length; i++) {
-      if (i === 1) {
-        encoded.push(command(2, ring.length - 1)) // lineto
+      if (i === 1 && type !== 1) {
+        pbf.writeVarint(command(2, ring.length - 1)) // lineto
       }
       var dx = ring[i].x - x
       var dy = ring[i].y - y
-      encoded.push(zigzag(dx), zigzag(dy))
+      pbf.writeVarint(zigzag(dx))
+      pbf.writeVarint(zigzag(dy))
       x += dx
       y += dy
     }
   }
-
-  return encoded
 }
 
-/**
- * Wrap a property value according to its type. The returned object
- * is of the form { xxxx_value: primitiveValue }, which is what the generated
- * protobuf serializer expects.
- */
-function wrapValue (value) {
-  var result
+function writeValue (value, pbf) {
   var type = typeof value
   if (type === 'string') {
-    result = { string_value: value }
+    pbf.writeStringField(1, value)
   } else if (type === 'boolean') {
-    result = { bool_value: value }
+    pbf.writeBooleanField(7, value)
   } else if (type === 'number') {
     if (value % 1 !== 0) {
-      result = { double_value: value }
+      pbf.writeDoubleField(3, value)
     } else if (value < 0) {
-      result = { sint_value: value }
+      pbf.writeSVarintField(6, value)
     } else {
-      result = { uint_value: value }
+      pbf.writeVarintField(5, value)
     }
-  } else {
-    value = JSON.stringify(value)
-    result = { string_value: value }
   }
-
-  result.key = type + ':' + value
-  return result
 }
