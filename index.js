@@ -133,9 +133,11 @@ function writeGeometry (feature, pbf) {
       count = ring.length
     }
     pbf.writeVarint(command(1, count)) // moveto
-    for (var i = 0; i < ring.length; i++) {
+    // do not write polygon closing path as lineto
+    var lineCount = type === 3 ? ring.length - 1 : ring.length
+    for (var i = 0; i < lineCount; i++) {
       if (i === 1 && type !== 1) {
-        pbf.writeVarint(command(2, ring.length - 1)) // lineto
+        pbf.writeVarint(command(2, lineCount - 1)) // lineto
       }
       var dx = ring[i].x - x
       var dy = ring[i].y - y
@@ -143,6 +145,9 @@ function writeGeometry (feature, pbf) {
       pbf.writeVarint(zigzag(dy))
       x += dx
       y += dy
+    }
+    if (type === 3) {
+      pbf.writeVarint(command(7, 0)) // closepath
     }
   }
 }
