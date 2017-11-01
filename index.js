@@ -22,13 +22,19 @@ function fromVectorTileJs (tile) {
  * Serialized a geojson-vt-created tile to pbf.
  *
  * @param {Object} layers - An object mapping layer names to geojson-vt-created vector tile objects
+ * @param {Object} options - Options to specfic version/extent
+ * @param {Number} options.version - Version of vector-tile spec used
+ * @param {Number} options.extent - Extent of the vector tile
  * @return {Buffer} uncompressed, pbf-serialized tile data
  */
-function fromGeojsonVt (layers) {
+function fromGeojsonVt (layers, options) {
+  options = options || {}
   var l = {}
   for (var k in layers) {
-    l[k] = new GeoJSONWrapper(layers[k].features)
+    l[k] = new GeoJSONWrapper(layers[k].features, options)
     l[k].name = k
+    l[k].version = options.version
+    l[k].extent = options.extent
   }
   return fromVectorTileJs({layers: l})
 }

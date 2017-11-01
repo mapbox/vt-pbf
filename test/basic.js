@@ -115,3 +115,31 @@ test('Pass through integer ids', function (t) {
 
   t.end()
 })
+
+test('Pass options to fromGeojsonVt()', function (t) {
+  var version = 2
+  var extent = 8192
+  var orig = JSON.parse(fs.readFileSync(__dirname + '/fixtures/rectangle.geojson'))
+  var tileindex = geojsonVt(orig, { extent: extent })
+  var tile = tileindex.getTile(1, 0, 0)
+  var options = { version: version, extent: extent }
+  var buff = serialize.fromGeojsonVt({ 'geojsonLayer': tile }, options)
+
+  var vt = new VectorTile(new Pbf(buff))
+  var layer = vt.layers['geojsonLayer']
+  var features = []
+  for (var i = 0; i < layer.length; i++) {
+    var feat = layer.feature(i).toGeoJSON(0, 0, 1)
+    features.push(feat)
+  }
+
+  t.equal(layer.version, options.version, 'version should be equal')
+  t.equal(layer.extent, options.extent, 'extent should be equal')
+
+  orig.features.forEach(function (expected) {
+    var actual = features.shift()
+    t.ok(eq.compare(actual, expected))
+  })
+
+  t.end()
+})
