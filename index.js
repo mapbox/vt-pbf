@@ -35,6 +35,7 @@ function fromGeojsonVt (layers, options) {
     l[k].name = k
     l[k].version = options.version
     l[k].extent = options.extent
+    l[k].dimensions = options.dimensions || layers[k].dimensions
   }
   return fromVectorTileJs({layers: l})
 }
@@ -49,13 +50,15 @@ function writeLayer (layer, pbf) {
   pbf.writeVarintField(15, layer.version || 1)
   pbf.writeStringField(1, layer.name || '')
   pbf.writeVarintField(5, layer.extent || 4096)
+  pbf.writeVarintField(6, layer.dimensions || 2)
 
   var i
   var context = {
     keys: [],
     values: [],
     keycache: {},
-    valuecache: {}
+    valuecache: {},
+    dimensions: layer.dimensions || 2
   }
 
   for (i = 0; i < layer.length; i++) {
@@ -76,6 +79,7 @@ function writeLayer (layer, pbf) {
 
 function writeFeature (context, pbf) {
   var feature = context.feature
+  feature.dimensions = context.dimensions
 
   if (feature.id !== undefined) {
     pbf.writeVarintField(1, feature.id)
@@ -129,8 +133,10 @@ function zigzag (num) {
 function writeGeometry (feature, pbf) {
   var geometry = feature.loadGeometry()
   var type = feature.type
+  var dimensions = feature.dimensions
   var x = 0
   var y = 0
+  var z = 0
   var rings = geometry.length
   for (var r = 0; r < rings; r++) {
     var ring = geometry[r]
@@ -149,6 +155,11 @@ function writeGeometry (feature, pbf) {
       var dy = ring[i].y - y
       pbf.writeVarint(zigzag(dx))
       pbf.writeVarint(zigzag(dy))
+      if (dimensions === 3) {
+        var dz = ring[i].z - z
+        pbf.writeVarint(zigzag(dz))
+        z += dz
+      }
       x += dx
       y += dy
     }
