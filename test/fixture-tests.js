@@ -27,11 +27,6 @@ test('geojson-vt', function (t) {
       vtvalidate.isValid(buff, (err, invalid) => {
         t.error(err)
 
-        // https://github.com/mapbox/vt-pbf/issues/28
-        if (invalid && invalid === 'ClosePath command count is not 1') {
-          invalid = null
-        }
-
         t.ok(!invalid, invalid)
 
         // Compare roundtripped features with originals
