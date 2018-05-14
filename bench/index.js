@@ -21,19 +21,19 @@ var pointsTile = geojsonVt(points).getTile(14, 3888, 6255)
 
 var suite = new Benchmark.Suite('vt-pbf')
 suite
-.add('raw', function () {
-  serialize(rawTile)
-})
-.add('simple', function () {
-  serialize.fromGeojsonVt({ 'geojsonLayer': simpleTile })
-})
-.add('points', function () {
-  serialize.fromGeojsonVt({ 'geojsonLayer': pointsTile })
-})
-.add('lots of properties', function () {
-  serialize.fromGeojsonVt({ 'geojsonLayer': propertiesTile })
-})
-.on('cycle', function (event) {
-  console.log(String(event.target))
-})
-.run()
+  .add('raw', function () {
+    serialize(rawTile)
+  })
+  .add('simple', function () {
+    serialize.fromGeojsonVt({ 'geojsonLayer': simpleTile })
+  })
+  .add('points', function () {
+    serialize.fromGeojsonVt({ 'geojsonLayer': pointsTile })
+  })
+  .add('lots of properties', function () {
+    serialize.fromGeojsonVt({ 'geojsonLayer': propertiesTile })
+  })
+  .on('cycle', function (event) {
+    console.log(String(event.target))
+  })
+  .run()
