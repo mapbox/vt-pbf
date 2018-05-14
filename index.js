@@ -153,7 +153,7 @@ function writeGeometry (feature, pbf) {
       y += dy
     }
     if (type === 3) {
-      pbf.writeVarint(command(7, 0)) // closepath
+      pbf.writeVarint(command(7, 1)) // closepath
     }
   }
 }
