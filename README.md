@@ -39,4 +39,7 @@ var buff = vtpbf.fromGeojsonVt({ 'geojsonLayer': tile })
 fs.writeFileSync('my-tile.pbf', buff)
 ```
 
+`vtpbf.fromGeojsonVt` takes two arguments:
+- `layerMap` is an object where keys are layer names and values are a geojson-vt tile,
+- `options` is an object (optional argument). There are 2 supported keys: `version` to define the version of the mvt spec used and `extent` to define the extent of the tile. `version` defaults to 1 and `extent` to 4096.
 
