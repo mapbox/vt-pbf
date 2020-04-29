@@ -104,7 +104,7 @@ function writeProperties (context, pbf) {
 
     var value = feature.properties[key]
     var type = typeof value
-    if (type !== 'string' && type !== 'boolean' && type !== 'number') {
+    if (value !== null && type !== 'string' && type !== 'boolean' && type !== 'number') {
       value = JSON.stringify(value)
     }
     var valueKey = type + ':' + value
