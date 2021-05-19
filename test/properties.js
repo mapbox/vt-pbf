@@ -1,6 +1,6 @@
 var fs = require('fs')
 const path = require('path')
-var test = require('tap').test
+var test = require('tape').test
 var Pbf = require('pbf')
 var geojsonVt = require('geojson-vt')
 var VectorTile = require('@mapbox/vector-tile').VectorTile
@@ -21,8 +21,8 @@ test('property encoding', function (t) {
         properties: {
           a: 'one',
           b: 1,
-          c: { 'hello': 'world' },
-          d: [ 1, 2, 3 ]
+          c: { hello: 'world' },
+          d: [1, 2, 3]
         },
         geometry: {
           type: 'Point',
@@ -33,8 +33,8 @@ test('property encoding', function (t) {
         properties: {
           a: 'two',
           b: 2,
-          c: { 'goodbye': 'planet' },
-          d: { 'hello': 'world' }
+          c: { goodbye: 'planet' },
+          d: { hello: 'world' }
         },
         geometry: {
           type: 'Point',
@@ -45,10 +45,10 @@ test('property encoding', function (t) {
 
     var tileindex = geojsonVt(orig)
     var tile = tileindex.getTile(1, 0, 0)
-    var buff = vtpbf.fromGeojsonVt({ 'geojsonLayer': tile })
+    var buff = vtpbf.fromGeojsonVt({ geojsonLayer: tile })
 
     var vt = new VectorTile(new Pbf(buff))
-    var layer = vt.layers['geojsonLayer']
+    var layer = vt.layers.geojsonLayer
 
     var first = layer.feature(0).properties
     var second = layer.feature(1).properties
@@ -63,8 +63,8 @@ test('property encoding', function (t) {
     var orig = {
       type: 'Feature',
       properties: {
-        'large_integer': 39953616224,
-        'non_integer': 331.75415
+        large_integer: 39953616224,
+        non_integer: 331.75415
       },
       geometry: {
         type: 'Point',
@@ -74,9 +74,9 @@ test('property encoding', function (t) {
 
     var tileindex = geojsonVt(orig)
     var tile = tileindex.getTile(1, 0, 0)
-    var buff = vtpbf.fromGeojsonVt({ 'geojsonLayer': tile })
+    var buff = vtpbf.fromGeojsonVt({ geojsonLayer: tile })
     var vt = new VectorTile(new Pbf(buff))
-    var layer = vt.layers['geojsonLayer']
+    var layer = vt.layers.geojsonLayer
 
     var properties = layer.feature(0).properties
     t.equal(properties.large_integer, 39953616224)
@@ -118,9 +118,9 @@ test('id encoding', function (t) {
   }
   var tileindex = geojsonVt(orig)
   var tile = tileindex.getTile(1, 0, 0)
-  var buff = vtpbf.fromGeojsonVt({ 'geojsonLayer': tile })
+  var buff = vtpbf.fromGeojsonVt({ geojsonLayer: tile })
   var vt = new VectorTile(new Pbf(buff))
-  var layer = vt.layers['geojsonLayer']
+  var layer = vt.layers.geojsonLayer
   t.same(layer.feature(0).id, 123)
   t.notOk(layer.feature(1).id, 'Non-integer values should not be saved')
   t.notOk(layer.feature(2).id)
@@ -134,10 +134,10 @@ test('accept geojson-vt options https://github.com/mapbox/vt-pbf/pull/21', funct
   var tileindex = geojsonVt(orig, { extent: extent })
   var tile = tileindex.getTile(1, 0, 0)
   var options = { version: version, extent: extent }
-  var buff = vtpbf.fromGeojsonVt({ 'geojsonLayer': tile }, options)
+  var buff = vtpbf.fromGeojsonVt({ geojsonLayer: tile }, options)
 
   var vt = new VectorTile(new Pbf(buff))
-  var layer = vt.layers['geojsonLayer']
+  var layer = vt.layers.geojsonLayer
   var features = []
   for (var i = 0; i < layer.length; i++) {
     var feat = layer.feature(i).toGeoJSON(0, 0, 1)
