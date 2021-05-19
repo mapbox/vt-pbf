@@ -22,7 +22,8 @@ test('property encoding', function (t) {
           a: 'one',
           b: 1,
           c: { hello: 'world' },
-          d: [1, 2, 3]
+          d: [1, 2, 3],
+          e: null
         },
         geometry: {
           type: 'Point',
@@ -54,6 +55,7 @@ test('property encoding', function (t) {
     var second = layer.feature(1).properties
     t.same(first.c, '{"hello":"world"}')
     t.same(first.d, '[1,2,3]')
+    t.equals(first.e, null)
     t.same(second.c, '{"goodbye":"planet"}')
     t.same(second.d, '{"hello":"world"}')
     t.end()
