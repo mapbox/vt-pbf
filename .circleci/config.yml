@@ -1,5 +1,5 @@
 jobs:
-  test:
+  build:
     docker:
       - image: cimg/node:10.24
     steps:
