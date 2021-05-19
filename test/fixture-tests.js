@@ -1,4 +1,4 @@
-var test = require('tap').test
+var test = require('tape').test
 var geojsonVt = require('geojson-vt')
 var VectorTile = require('@mapbox/vector-tile').VectorTile
 var Pbf = require('pbf')
@@ -23,7 +23,7 @@ test('geojson-vt', function (t) {
   fixtures.forEach(function (fixture) {
     t.test(fixture.name, function (t) {
       var tile = geojsonVt(fixture.data).getTile(0, 0, 0)
-      var buff = vtpbf.fromGeojsonVt({ 'geojsonLayer': tile })
+      var buff = vtpbf.fromGeojsonVt({ geojsonLayer: tile })
       vtvalidate.isValid(buff, (err, invalid) => {
         t.error(err)
 
@@ -31,7 +31,7 @@ test('geojson-vt', function (t) {
 
         // Compare roundtripped features with originals
         const expected = fixture.data.type === 'FeatureCollection' ? fixture.data.features : [fixture.data]
-        var layer = new VectorTile(new Pbf(buff)).layers['geojsonLayer']
+        var layer = new VectorTile(new Pbf(buff)).layers.geojsonLayer
         t.equal(layer.length, expected.length, expected.length + ' features')
         for (var i = 0; i < layer.length; i++) {
           var actual = layer.feature(i).toGeoJSON(0, 0, 0)

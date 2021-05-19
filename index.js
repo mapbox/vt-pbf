@@ -36,7 +36,7 @@ function fromGeojsonVt (layers, options) {
     l[k].version = options.version
     l[k].extent = options.extent
   }
-  return fromVectorTileJs({layers: l})
+  return fromVectorTileJs({ layers: l })
 }
 
 function writeTile (tile, pbf) {

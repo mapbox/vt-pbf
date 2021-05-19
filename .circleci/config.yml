@@ -1,0 +1,8 @@
+jobs:
+  build:
+    docker:
+      - image: cimg/node:10.24
+    steps:
+      - checkout
+      - run: npm ci
+      - run: npm test
