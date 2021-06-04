@@ -94,7 +94,11 @@ function writeProperties (context, pbf) {
   var valuecache = context.valuecache
 
   for (var key in feature.properties) {
+    var value = feature.properties[key]
+
     var keyIndex = keycache[key]
+    if (value === null) continue // don't encode null value properties
+
     if (typeof keyIndex === 'undefined') {
       keys.push(key)
       keyIndex = keys.length - 1
@@ -102,9 +106,8 @@ function writeProperties (context, pbf) {
     }
     pbf.writeVarint(keyIndex)
 
-    var value = feature.properties[key]
     var type = typeof value
-    if (value !== null && type !== 'string' && type !== 'boolean' && type !== 'number') {
+    if (type !== 'string' && type !== 'boolean' && type !== 'number') {
       value = JSON.stringify(value)
     }
     var valueKey = type + ':' + value
