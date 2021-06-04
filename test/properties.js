@@ -55,7 +55,7 @@ test('property encoding', function (t) {
     var second = layer.feature(1).properties
     t.same(first.c, '{"hello":"world"}')
     t.same(first.d, '[1,2,3]')
-    t.equals(first.e, null)
+    t.equals(first.e, undefined)
     t.same(second.c, '{"goodbye":"planet"}')
     t.same(second.d, '{"hello":"world"}')
     t.end()
