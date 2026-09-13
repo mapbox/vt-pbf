@@ -135,6 +135,15 @@ function writeGeometry (feature, pbf) {
   var x = 0
   var y = 0
   var rings = geometry.length
+  if (type === 1) {
+    // point geometries must use a single MoveTo command
+    var flattened = []
+    for (var j = 0; j < rings; j++) {
+      flattened = flattened.concat(geometry[j])
+    }
+    geometry = [flattened]
+    rings = 1
+  }
   for (var r = 0; r < rings; r++) {
     var ring = geometry[r]
     var count = 1

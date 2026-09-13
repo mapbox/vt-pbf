@@ -55,12 +55,6 @@ test('vector-tile-js', function (t) {
     t.test('mvt-fixtures: ' + fixture.id + ' ' + fixture.description, function (t) {
       var original = new VectorTile(new Pbf(fixture.buffer))
 
-      if (fixture.id === '020') {
-        t.comment('Skipping test due to https://github.com/mapbox/vt-pbf/issues/30')
-        t.end()
-        return
-      }
-
       if (fixture.id === '049' || fixture.id === '050') {
         t.comment('Skipping test due to https://github.com/mapbox/vt-pbf/issues/31')
         t.end()
